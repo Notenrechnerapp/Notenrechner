@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Notenrechner</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #cce7ff;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: white;
+      padding: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .container {
+      padding: 15px;
+    }
+
+    .fach {
+      background: white;
+      margin: 15px 0;
+      padding: 15px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    input {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 8px 12px;
+      margin: 5px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .add { background: #e0e0e0; }
+    .remove { background: #ccc; }
+
+    .result {
+      background: white;
+      padding: 15px;
+      margin: 15px;
+      border-radius: 15px;
+      text-align: center;
+      font-size: 18px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      color: #555;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>📊 Notenrechner</header>
+
+<div class="container">
+
+  <button onclick="alleFaecher()">📚 Alle Fächer</button>
+
+  <div id="faecher"></div>
+
+  <button class="add" onclick="fachHinzufuegen()">➕ Fach hinzufügen</button>
+
+  <button onclick="berechnen()">Berechnen</button>
+
+  <div class="result" id="gesamt"></div>
+
+</div>
+
+<footer>
+  ✨ Berechne deinen Schnitt, behalte den Überblick und hol das Beste aus deinen Noten raus 📚
+</footer>
+
+<script>
+let faecherListe = [
+  "Mathe","Deutsch","Englisch","Biologie",
+  "Chemie","Physik","Geschichte"
+];
+
+function alleFaecher() {
+  let container = document.getElementById("faecher");
+  container.innerHTML = "";
+  faecherListe.forEach(name => fachErstellen(name));
+}
+
+function fachErstellen(name) {
+  let div = document.createElement("div");
+  div.className = "fach";
+
+  div.innerHTML = `
+    <h3>${name} <button class="remove" onclick="this.parentElement.parentElement.remove()">➖</button></h3>
+    <div class="noten"></div>
+    <button class="add" onclick="noteHinzufuegen(this)">➕ Note</button>
+    <p class="fachErgebnis"></p>
+  `;
+
+  document.getElementById("faecher").appendChild(div);
+}
+
+function fachHinzufuegen() {
+  let name = prompt("Fachname:");
+  if (name) fachErstellen(name);
+}
+
+function noteHinzufuegen(button) {
+  let container = button.parentElement.querySelector(".noten");
+
+  let div = document.createElement("div");
+  div.innerHTML = `
+    <input class="note" placeholder="Note (1,5)">
+    <input class="gewicht" placeholder="Gewichtung (25 oder 1/2)">
+    <button onclick="this.parentElement.remove()">❌</button>
+  `;
+
+  container.appendChild(div);
+}
+
+function parseNote(wert) {
+  if (wert.includes("-")) {
+    throw "Keine Bereiche (1-2). Nutze 1,5";
+  }
+  return Number(wert.replace(",", "."));
+}
+
+function parseGewichtung(wert) {
+  if (wert.includes("/")) {
+    let t = wert.split("/");
+    return Number(t[0]) / Number(t[1]) * 100;
+  }
+  return Number(wert);
+}
+
+function berechnen() {
+  let fachDivs = document.getElementsByClassName("fach");
+
+  let gesamtSumme = 0;
+  let gesamtGewicht = 0;
+
+  try {
+    for (let fach of fachDivs) {
+      let noten = fach.getElementsByClassName("note");
+      let gewichte = fach.getElementsByClassName("gewicht");
+
+      let summe = 0;
+      let gewichtSum = 0;
+
+      for (let i = 0; i < noten.length; i++) {
+        let n = parseNote(noten[i].value);
+        let w = parseGewichtung(gewichte[i].value);
+
+        if (isNaN(n) || isNaN(w)) {
+          throw "Bitte alles richtig ausfüllen!";
+        }
+
+        summe += n * w;
+        gewichtSum += w;
+      }
+
+      if (gewichtSum > 0) {
+        let fachDurchschnitt = summe / gewichtSum;
+
+        fach.querySelector(".fachErgebnis").innerText =
+          "Fach-Durchschnitt: " + fachDurchschnitt.toFixed(2);
+
+        gesamtSumme += fachDurchschnitt;
+        gesamtGewicht++;
+      }
+    }
+
+    if (gesamtGewicht === 0) throw "Keine Daten!";
+
+    let gesamt = gesamtSumme / gesamtGewicht;
+
+    document.getElementById("gesamt").innerText =
+      "Gesamt-Durchschnitt: " + gesamt.toFixed(2);
+
+  } catch (e) {
+    document.getElementById("gesamt").innerText = e;
+  }
+}
+</script>
+
+</body>
+</html> 
